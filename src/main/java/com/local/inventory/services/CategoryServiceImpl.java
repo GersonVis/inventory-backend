@@ -57,8 +57,35 @@ public class CategoryServiceImpl implements ICategoryService{
 				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.FORBIDDEN);
 			}
 			
+			
 		}catch(Exception e) {
 			response.setMetada("Repuesta 404", "-1", "Error en la solicitud");
+			e.getStackTrace();
+			return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.OK);
+	}
+	
+
+	@Override
+	@Transactional
+	public ResponseEntity<CategoryResponseRest> save(Category category) {
+		CategoryResponseRest response= new CategoryResponseRest();
+		List<Category> list = new ArrayList<>();
+		try {
+			Category categorySaved = categoryDao.save(category);
+			if(categorySaved != null) {
+				list.add(categorySaved);
+				response.getCategoryResponse().setCategory(list);
+				response.setMetada("Respuesta ok", "1", "Se ha guardado correctamente");
+			}else {
+				response.setMetada("Respuesta nok", "-1", "Categoria no guardada");
+				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.BAD_REQUEST);
+			}
+			
+		}catch(Exception e) {
+			response.setMetada("Repuesta 404", "-1", "Error al guardar la información");
 			e.getStackTrace();
 			return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
