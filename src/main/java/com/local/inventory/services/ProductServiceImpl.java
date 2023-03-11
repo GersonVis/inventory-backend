@@ -67,6 +67,8 @@ public class ProductServiceImpl implements IProductService {
 			//search product by id
 			Optional<Product> product = productDao.findById(id);
 			if(product.isPresent()) {
+				byte[] imageDescompressed = Util.decompressZLib(product.get().getPicture());
+				product.get().setPicture(imageDescompressed);
 				list.add(product.get());
 				response.getProduct().setProducts(list);
 				response.setMetada("Respuesta ok", "00", "Producto encontrado");
@@ -75,9 +77,40 @@ public class ProductServiceImpl implements IProductService {
 				return new ResponseEntity<ProductResponseRest>(response, HttpStatus.NOT_FOUND);
 			}
 			
+			
 		}catch(Exception e){
 			
 		}
+		return new ResponseEntity<ProductResponseRest>(response, HttpStatus.OK);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public ResponseEntity<ProductResponseRest> searchByName(String name) {
+		ProductResponseRest response = new ProductResponseRest();
+		List<Product> list = new ArrayList<>();
+		List<Product> listAux = new ArrayList<>();
+		try {
+			listAux = productDao.findByNameContainingIgnoreCase(name);
+		
+			if(listAux.size()>0) {
+				listAux.stream().forEach((p)->{
+					byte[] imageCompressed = Util.decompressZLib(p.getPicture());
+					p.setPicture(imageCompressed);
+					list.add(p);
+				});
+				
+				response.getProduct().setProducts(list);
+				response.setMetada("Respuesta ok", "00", "Productos encontrados");
+			}else {
+				response.setMetada("Respuesta ok", "-1", "No hay coincidencias");
+				return new ResponseEntity<ProductResponseRest>(response, HttpStatus.NOT_FOUND);
+			}
+			
+		}catch(Exception e){
+			
+		}
+		
 		return new ResponseEntity<ProductResponseRest>(response, HttpStatus.OK);
 	}
 
